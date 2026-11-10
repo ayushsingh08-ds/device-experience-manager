@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/db';
 import { IngestTelemetrySchema, TelemetryQuerySchema } from '../types/telemetry';
+import { DiagnosticService } from '../services/diagnosticService';
 
 export const ingestTelemetry = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -40,6 +41,14 @@ export const ingestTelemetry = async (req: Request, res: Response): Promise<void
         },
       }),
     ]);
+
+    // Asynchronously run diagnostic rules to evaluate alerts (non-blocking)
+    DiagnosticService.evaluateTelemetry({
+      deviceId,
+      cpuUsage,
+      memoryUsage,
+      diskUsage,
+    }).catch((err) => console.error('[DiagnosticEngine Error]:', err));
 
     res.status(201).json({
       message: 'Telemetry ingested successfully',

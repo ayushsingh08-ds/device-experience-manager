@@ -3,6 +3,7 @@ import cors from 'cors';
 import authRoutes from './routes/authRoutes';
 import deviceRoutes from './routes/deviceRoutes';
 import telemetryRoutes from './routes/telemetryRoutes';
+import alertRoutes from './routes/alertRoutes';
 
 const app: Application = express();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/devices', deviceRoutes);
 app.use('/api/telemetry', telemetryRoutes);
+app.use('/api/alerts', alertRoutes);
 
 // Health check endpoint
 app.get('/health', (_req: Request, res: Response) => {
