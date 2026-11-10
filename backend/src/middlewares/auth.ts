@@ -49,3 +49,4 @@ export const authorize = (...allowedRoles: Array<'ADMIN' | 'OPERATOR' | 'VIEWER'
     next();
   };
 };
+

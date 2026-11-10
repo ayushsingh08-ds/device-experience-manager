@@ -24,3 +24,4 @@ router.post('/:id/approve', authorize('ADMIN', 'OPERATOR'), approveAndExecute);
 router.post('/:id/reject', authorize('ADMIN'), rejectRemediation);
 
 export default router;
+

@@ -127,3 +127,4 @@ export class DiagnosticService {
     return timedOutDevices.length;
   }
 }
+

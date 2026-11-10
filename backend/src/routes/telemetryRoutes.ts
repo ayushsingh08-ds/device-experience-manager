@@ -11,3 +11,4 @@ router.post('/', ingestTelemetry);
 router.get('/:deviceId', authenticate, getDeviceTelemetry);
 
 export default router;
+

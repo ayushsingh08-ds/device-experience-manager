@@ -25,3 +25,4 @@ router.patch('/:id', authorize('ADMIN', 'OPERATOR'), updateDevice);
 router.delete('/:id', authorize('ADMIN'), deleteDevice);
 
 export default router;
+

@@ -14,3 +14,4 @@ export const TelemetryQuerySchema = z.object({
 
 export type IngestTelemetryInput = z.infer<typeof IngestTelemetrySchema>;
 export type TelemetryQueryParams = z.infer<typeof TelemetryQuerySchema>;
+

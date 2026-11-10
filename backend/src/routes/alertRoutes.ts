@@ -14,3 +14,4 @@ router.get('/', getAlerts);
 router.patch('/:id/status', authorize('ADMIN', 'OPERATOR'), updateAlertStatus);
 
 export default router;
+

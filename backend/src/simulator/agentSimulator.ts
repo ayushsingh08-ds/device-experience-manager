@@ -70,3 +70,4 @@ export const runFleetSimulation = async (intervalSeconds = 5, iterations = 3) =>
 if (require.main === module) {
   runFleetSimulation(3, 3).catch(console.error);
 }
+

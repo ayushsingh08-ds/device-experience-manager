@@ -57,3 +57,4 @@ router.get('/', authorize('ADMIN', 'OPERATOR'), async (req: Request, res: Respon
 });
 
 export default router;
+

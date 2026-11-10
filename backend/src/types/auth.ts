@@ -20,3 +20,4 @@ export interface JwtPayload {
   email: string;
   role: 'ADMIN' | 'OPERATOR' | 'VIEWER';
 }
+
