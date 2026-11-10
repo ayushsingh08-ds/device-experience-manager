@@ -66,3 +66,4 @@ jobs:
       - name: Build Frontend (Vite Production Bundle)
         working-directory: ./frontend
         run: npm run build
+
