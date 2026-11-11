@@ -1,8 +1,15 @@
 import { useState, type FormEvent } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '../api/client';
-import { Server, Plus, Search, Filter, AlertCircle, X } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
+import {
+  DeviceIcon,
+  Plus,
+  Search,
+  Filter,
+  X,
+  SketchLaptopEmpty,
+} from '../components/sketch/AnimatedIcons';
 
 export default function DevicesPage() {
   const queryClient = useQueryClient();
@@ -61,28 +68,37 @@ export default function DevicesPage() {
   const pagination = data?.pagination || { total: 0, totalPages: 1 };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-1">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Fleet Inventory</h1>
-          <p className="text-xs text-slate-400 mt-1">Manage, monitor, and enroll organization endpoint devices.</p>
+          <div className="flex items-center gap-2.5">
+            <DeviceIcon size={20} className="text-neutral-950" />
+            <h1 className="font-sketch font-bold text-2xl text-neutral-950 tracking-wide">
+              Fleet Inventory
+            </h1>
+          </div>
+          <p className="text-xs text-neutral-600 font-sans mt-0.5">
+            Manage, monitor, and enroll organization endpoint devices.
+          </p>
         </div>
 
         {user?.role !== 'VIEWER' && (
           <button
+            type="button"
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-blue-600/30 transition-all cursor-pointer"
+            className="sketch-btn-black px-4 py-2 text-xs font-sketch font-bold flex items-center gap-2 cursor-pointer"
           >
-            <Plus className="w-4 h-4" /> Enroll New Endpoint
+            <Plus size={14} strokeWidth={2} className="text-white" />
+            <span>Enroll New Endpoint</span>
           </button>
         )}
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-slate-900 border border-slate-800 p-3.5 rounded-2xl">
+      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between p-3.5 sketch-card bg-white">
         <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-500" />
+          <Search size={14} strokeWidth={1.8} className="absolute left-3 top-2.5 text-neutral-500" />
           <input
             type="text"
             placeholder="Search hostname or IP..."
@@ -91,23 +107,24 @@ export default function DevicesPage() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+            className="w-full sketch-input pl-8.5 pr-3 py-1.5 text-xs font-sans"
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Filter className="w-4 h-4 text-slate-500 shrink-0" />
+        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
+          <Filter size={13} strokeWidth={1.8} className="text-neutral-600 shrink-0" />
           {['', 'ONLINE', 'OFFLINE', 'DEGRADED'].map((st) => (
             <button
               key={st}
+              type="button"
               onClick={() => {
                 setStatusFilter(st);
                 setPage(1);
               }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+              className={`px-3 py-1 text-xs font-sketch transition-all cursor-pointer rounded-lg ${
                 statusFilter === st
-                  ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                  : 'text-slate-400 hover:text-white bg-slate-950/40 border border-transparent'
+                  ? 'border-[1.5px] border-neutral-950 bg-neutral-950 text-white font-bold shadow-[1px_1px_0px_0px_rgba(0,0,0,0.8)]'
+                  : 'border border-neutral-300 hover:border-neutral-950 text-neutral-700 bg-white'
               }`}
             >
               {st || 'All'}
@@ -117,67 +134,73 @@ export default function DevicesPage() {
       </div>
 
       {/* Devices Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <div className="sketch-card bg-white overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-950/40 text-[11px] font-bold tracking-wider text-slate-400 uppercase">
-                <th className="py-3.5 px-5">Hostname</th>
-                <th className="py-3.5 px-5">IP / MAC</th>
-                <th className="py-3.5 px-5">Operating System</th>
-                <th className="py-3.5 px-5">Status</th>
-                <th className="py-3.5 px-5">Open Incidents</th>
-                <th className="py-3.5 px-5">Last Heartbeat</th>
+              <tr className="border-b-[1.5px] border-neutral-900 bg-[#fbf9f5] text-[11px] font-sketch tracking-wider text-neutral-700 uppercase">
+                <th className="py-3 px-5">Hostname</th>
+                <th className="py-3 px-5">IP / MAC</th>
+                <th className="py-3 px-5">Operating System</th>
+                <th className="py-3 px-5">Status</th>
+                <th className="py-3 px-5">Open Incidents</th>
+                <th className="py-3 px-5">Last Heartbeat</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/80 text-xs">
+            <tbody className="divide-y divide-neutral-200 text-xs font-sans">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-500">
+                  <td colSpan={6} className="py-8 text-center text-neutral-500 font-sketch text-sm">
                     Loading fleet records...
                   </td>
                 </tr>
               ) : devices.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-500">
-                    No devices matching the current filters.
+                  <td colSpan={6} className="py-12 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <SketchLaptopEmpty className="w-16 h-12 mb-2 text-neutral-900 opacity-90" />
+                      <p className="font-sketch text-sm text-neutral-800">
+                        No devices matching current search or filter.
+                      </p>
+                    </div>
                   </td>
                 </tr>
               ) : (
                 devices.map((d: any) => (
-                  <tr key={d.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-3.5 px-5 font-semibold text-white">
+                  <tr key={d.id} className="hover:bg-neutral-50/80 transition-colors">
+                    <td className="py-3 px-5 font-bold text-neutral-950 font-mono text-[12px]">
                       <div className="flex items-center gap-2">
-                        <Server className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                        <DeviceIcon size={14} className="text-neutral-900 shrink-0" />
                         <span>{d.hostname}</span>
                       </div>
                     </td>
-                    <td className="py-3.5 px-5 font-mono text-slate-300">
+                    <td className="py-3 px-5 font-mono text-neutral-800">
                       <div>{d.ipAddress}</div>
-                      <div className="text-[10px] text-slate-500">{d.macAddress}</div>
+                      <div className="text-[10px] text-neutral-500">{d.macAddress}</div>
                     </td>
-                    <td className="py-3.5 px-5 text-slate-300">
-                      {d.os} <span className="text-[10px] text-slate-500">({d.osVersion})</span>
+                    <td className="py-3 px-5 text-neutral-800">
+                      {d.os} <span className="text-[10px] text-neutral-500">({d.osVersion})</span>
                     </td>
-                    <td className="py-3.5 px-5">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                        d.status === 'ONLINE'
-                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                          : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                      }`}>
+                    <td className="py-3 px-5">
+                      <span className="text-[10px] font-mono px-2 py-0.5 border border-neutral-900 rounded-full bg-white font-bold inline-flex items-center gap-1.5">
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            d.status === 'ONLINE' ? 'bg-emerald-600' : 'bg-neutral-400'
+                          }`}
+                        />
                         {d.status}
                       </span>
                     </td>
-                    <td className="py-3.5 px-5">
+                    <td className="py-3 px-5">
                       {d._count?.alerts > 0 ? (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                        <span className="text-[10px] font-mono px-2 py-0.5 border border-neutral-900 rounded-full bg-amber-50 font-bold text-neutral-900">
                           {d._count.alerts} Open
                         </span>
                       ) : (
-                        <span className="text-[10px] text-slate-500">Clean</span>
+                        <span className="text-[10px] text-neutral-500 font-mono">Clean</span>
                       )}
                     </td>
-                    <td className="py-3.5 px-5 font-mono text-slate-400 text-[11px]">
+                    <td className="py-3 px-5 font-mono text-neutral-600 text-[11px]">
                       {d.lastHeartbeat ? new Date(d.lastHeartbeat).toLocaleTimeString() : 'Never'}
                     </td>
                   </tr>
@@ -189,20 +212,24 @@ export default function DevicesPage() {
 
         {/* Pagination Bar */}
         {pagination.totalPages > 1 && (
-          <div className="p-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-            <span>Showing Page {page} of {pagination.totalPages} ({pagination.total} endpoints)</span>
+          <div className="p-3 border-t border-neutral-300 flex items-center justify-between text-xs text-neutral-600 bg-[#fbf9f5]">
+            <span className="font-sketch">
+              Showing Page {page} of {pagination.totalPages} ({pagination.total} endpoints)
+            </span>
             <div className="flex gap-2">
               <button
+                type="button"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => p - 1)}
-                className="px-3 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-lg cursor-pointer"
+                className="px-3 py-1 sketch-btn text-xs font-sketch disabled:opacity-40"
               >
                 Previous
               </button>
               <button
+                type="button"
                 disabled={page >= pagination.totalPages}
                 onClick={() => setPage((p) => p + 1)}
-                className="px-3 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-lg cursor-pointer"
+                className="px-3 py-1 sketch-btn text-xs font-sketch disabled:opacity-40"
               >
                 Next
               </button>
@@ -211,99 +238,111 @@ export default function DevicesPage() {
         )}
       </div>
 
-      {/* Enrollment Modal */}
+      {/* Sketched Enrollment Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+        <div className="fixed inset-0 bg-neutral-950/40 backdrop-blur-[2px] flex items-center justify-center p-4 z-50">
+          <div className="bg-[#faf8f5] border-[2px] border-neutral-950 rounded-2xl max-w-md w-full p-6 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] relative">
             <button
+              type="button"
               onClick={() => setIsModalOpen(false)}
-              className="absolute right-4 top-4 text-slate-400 hover:text-white"
+              className="absolute right-4 top-4 p-1 rounded-lg hover:bg-neutral-200 text-neutral-800"
             >
-              <X className="w-5 h-5" />
+              <X size={16} strokeWidth={2} />
             </button>
 
-            <h2 className="text-lg font-bold text-white mb-1">Enroll New Endpoint</h2>
-            <p className="text-xs text-slate-400 mb-5">Register an authorized client device into fleet telemetry.</p>
+            <h2 className="font-sketch font-bold text-lg text-neutral-950 mb-0.5">Enroll New Endpoint</h2>
+            <p className="text-xs text-neutral-600 font-sans mb-4">
+              Register an authorized client hardware device into fleet telemetry.
+            </p>
 
             {modalError && (
-              <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl flex items-center gap-2 text-xs text-rose-400">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{modalError}</span>
+              <div className="mb-4 p-2.5 border border-neutral-900 bg-rose-50 rounded-xl text-xs text-neutral-900 font-sans">
+                {modalError}
               </div>
             )}
 
-            <form onSubmit={handleEnrollSubmit} className="space-y-3.5">
+            <form onSubmit={handleEnrollSubmit} className="space-y-3 font-sans">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Hostname</label>
+                <label className="block text-xs font-bold text-neutral-800 mb-1 font-sketch text-[13px]">
+                  Hostname
+                </label>
                 <input
                   type="text"
                   required
                   placeholder="WORKSTATION-01"
                   value={hostname}
                   onChange={(e) => setHostname(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-blue-500"
+                  className="w-full sketch-input px-3 py-1.5 text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">IPv4 Address</label>
+                <label className="block text-xs font-bold text-neutral-800 mb-1 font-sketch text-[13px]">
+                  IPv4 Address
+                </label>
                 <input
                   type="text"
                   required
                   placeholder="192.168.1.50"
                   value={ipAddress}
                   onChange={(e) => setIpAddress(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-blue-500"
+                  className="w-full sketch-input px-3 py-1.5 text-xs font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">MAC Address</label>
+                <label className="block text-xs font-bold text-neutral-800 mb-1 font-sketch text-[13px]">
+                  MAC Address
+                </label>
                 <input
                   type="text"
                   required
                   placeholder="00:1B:44:11:3A:B7"
                   value={macAddress}
                   onChange={(e) => setMacAddress(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-blue-500"
+                  className="w-full sketch-input px-3 py-1.5 text-xs font-mono"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Operating System</label>
+                  <label className="block text-xs font-bold text-neutral-800 mb-1 font-sketch text-[13px]">
+                    Operating System
+                  </label>
                   <input
                     type="text"
                     required
                     value={os}
                     onChange={(e) => setOs(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                    className="w-full sketch-input px-3 py-1.5 text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">OS Build/Version</label>
+                  <label className="block text-xs font-bold text-neutral-800 mb-1 font-sketch text-[13px]">
+                    OS Build / Version
+                  </label>
                   <input
                     type="text"
                     required
                     value={osVersion}
                     onChange={(e) => setOsVersion(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                    className="w-full sketch-input px-3 py-1.5 text-xs"
                   />
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="pt-3 flex justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 rounded-xl cursor-pointer"
+                  className="px-4 py-1.5 sketch-btn text-xs font-sketch font-bold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={enrollMutation.isPending}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-blue-600/30 cursor-pointer disabled:opacity-50"
+                  className="px-4 py-1.5 sketch-btn-black text-xs font-sketch font-bold disabled:opacity-50"
                 >
                   {enrollMutation.isPending ? 'Enrolling...' : 'Confirm Enrollment'}
                 </button>

@@ -6,6 +6,15 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding database with fresh test environment...');
 
+  // 0. Clean slate - delete all existing test data
+  await prisma.remediationAction.deleteMany({});
+  await prisma.alert.deleteMany({});
+  await prisma.telemetry.deleteMany({});
+  await prisma.auditLog.deleteMany({});
+  await prisma.device.deleteMany({});
+  await prisma.user.deleteMany({});
+  console.log('✓ Cleaned existing database records');
+
   // 1. Create Admin User
   const passwordHash = await bcrypt.hash('AdminPassword123!', 10);
   const user = await prisma.user.create({
@@ -80,3 +89,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

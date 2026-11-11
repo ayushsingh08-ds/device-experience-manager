@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, ShieldCheck, AlertCircle } from 'lucide-react';
 import { apiRequest } from '../api/client';
 import { useAuthStore } from '../stores/authStore';
+import { SketchShieldLogo, ShieldCheck } from '../components/sketch/AnimatedIcons';
 
 export default function LoginPage() {
   const [isRegister, setIsRegister] = useState(false);
@@ -33,79 +33,90 @@ export default function LoginPage() {
       setAuth(res.user, res.token);
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Authentication failed. Please check your credentials.');
+      setError(err.message || 'Authentication failed. Please verify credentials.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 selection:bg-blue-500 selection:text-white">
-      <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl shadow-blue-950/20">
-        {/* Header */}
-        <div className="flex flex-col items-center text-center mb-8">
-          <div className="p-3 bg-blue-600/20 text-blue-400 rounded-xl border border-blue-500/30 mb-3">
-            <Activity className="w-8 h-8" />
+    <div className="min-h-screen bg-[#faf8f5] flex flex-col items-center justify-center p-4 selection:bg-neutral-900 selection:text-white font-sans">
+      <div className="max-w-md w-full bg-[#fdfcf9] border-[2px] border-neutral-950 rounded-2xl p-7 sm:p-8 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] relative">
+        {/* Header Branding */}
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className="p-2 border-[1.5px] border-neutral-950 rounded-2xl bg-[#faf8f5] mb-2.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,0.8)]">
+            <SketchShieldLogo className="w-10 h-10" />
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Device Experience Manager</h1>
-          <p className="text-xs text-slate-400 mt-1">Enterprise Fleet Telemetry & Automated Remediation</p>
+          <h1 className="font-sketch font-bold text-2xl text-neutral-950 tracking-wide">
+            DEM Platform
+          </h1>
+          <p className="text-xs text-neutral-600 font-sans mt-0.5">
+            Endpoint Health Monitoring & Automated Remediation
+          </p>
         </div>
 
-        {/* Error Alert */}
+        {/* Error Alert Box */}
         {error && (
-          <div className="mb-6 p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-xl flex items-center gap-2.5 text-xs text-rose-400">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
+          <div className="mb-5 p-2.5 border-[1.5px] border-neutral-900 bg-rose-50 rounded-xl text-xs text-neutral-900 font-sans">
+            {error}
           </div>
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3.5">
           {isRegister && (
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Full Name</label>
+              <label className="block text-xs font-bold text-neutral-800 mb-1 font-sketch text-[13px]">
+                Full Name
+              </label>
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Jane Doe"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+                placeholder="Ayush Singh"
+                className="w-full sketch-input px-3.5 py-2 text-xs"
               />
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Corporate Email</label>
+            <label className="block text-xs font-bold text-neutral-800 mb-1 font-sketch text-[13px]">
+              Corporate Email
+            </label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="operator@company.com"
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+              placeholder="admin@dem.local"
+              className="w-full sketch-input px-3.5 py-2 text-xs font-mono"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Password</label>
+            <label className="block text-xs font-bold text-neutral-800 mb-1 font-sketch text-[13px]">
+              Password
+            </label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••••••"
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+              className="w-full sketch-input px-3.5 py-2 text-xs font-mono"
             />
           </div>
 
           {isRegister && (
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Assigned Role</label>
+              <label className="block text-xs font-bold text-neutral-800 mb-1 font-sketch text-[13px]">
+                Assigned Role
+              </label>
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value as any)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-full sketch-input px-3.5 py-2 text-xs bg-white"
               >
                 <option value="OPERATOR">IT Operator</option>
                 <option value="ADMIN">System Administrator</option>
@@ -117,22 +128,22 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl transition-all shadow-lg shadow-blue-600/30 text-sm mt-2 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+            className="w-full py-2.5 sketch-btn-black text-xs font-sketch font-bold flex items-center justify-center gap-2 mt-4 cursor-pointer disabled:opacity-50"
           >
-            <ShieldCheck className="w-4 h-4" />
-            {loading ? 'Authenticating...' : isRegister ? 'Create Account' : 'Sign In to Console'}
+            <ShieldCheck size={15} strokeWidth={2} className="text-white" />
+            <span>{loading ? 'Authenticating...' : isRegister ? 'Create Account' : 'Sign In to Console'}</span>
           </button>
         </form>
 
         {/* Toggle Switch */}
-        <div className="mt-6 text-center">
+        <div className="mt-5 text-center">
           <button
             type="button"
             onClick={() => {
               setIsRegister(!isRegister);
               setError(null);
             }}
-            className="text-xs text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+            className="text-xs font-sketch text-neutral-700 hover:text-neutral-950 underline underline-offset-2 transition-colors cursor-pointer"
           >
             {isRegister ? 'Already have an account? Sign in' : "Don't have an account? Register new user"}
           </button>

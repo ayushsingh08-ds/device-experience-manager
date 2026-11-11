@@ -1,14 +1,15 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import {
-  LayoutDashboard,
-  Server,
-  AlertTriangle,
-  Wrench,
-  Shield,
-  LogOut,
-  Activity,
-} from 'lucide-react';
+import { Home, User as UserIcon } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
+import {
+  DashboardIcon,
+  DeviceIcon,
+  AlertsIcon,
+  RemediationIcon,
+  AuditIcon,
+  SignOutIcon,
+  SketchShieldLogo,
+} from './sketch/AnimatedIcons';
 
 export default function Layout() {
   const { user, logout } = useAuthStore();
@@ -20,91 +21,113 @@ export default function Layout() {
   };
 
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-    { name: 'Device Inventory', path: '/devices', icon: Server },
-    { name: 'Alerts Console', path: '/alerts', icon: AlertTriangle },
-    { name: 'Remediation', path: '/remediations', icon: Wrench },
-    { name: 'Audit Trail', path: '/audit-logs', icon: Shield },
+    { name: 'Dashboard', path: '/', Icon: DashboardIcon },
+    { name: 'Device Inventory', path: '/devices', Icon: DeviceIcon },
+    { name: 'Alerts Console', path: '/alerts', Icon: AlertsIcon },
+    { name: 'Remediation', path: '/remediations', Icon: RemediationIcon },
+    { name: 'Audit Trail', path: '/audit-logs', Icon: AuditIcon },
   ];
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
-      {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between">
-        <div>
-          {/* Logo / Header */}
-          <div className="p-5 border-b border-slate-800 flex items-center gap-3">
-            <div className="p-2 bg-blue-600/20 text-blue-400 rounded-lg border border-blue-500/30">
-              <Activity className="w-5 h-5 animate-pulse" />
-            </div>
-            <div>
-              <h1 className="font-bold text-sm tracking-wide text-white leading-tight">DEM Platform</h1>
-              <p className="text-[11px] text-slate-400">Endpoint Health Suite</p>
-            </div>
-          </div>
-
-          {/* Navigation Links */}
-          <nav className="p-3 space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  end={item.path === '/'}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-                    }`
-                  }
-                >
-                  <Icon className="w-4 h-4" />
-                  {item.name}
-                </NavLink>
-              );
-            })}
-          </nav>
-        </div>
-
-        {/* User Card & Logout */}
-        <div className="p-4 border-t border-slate-800 bg-slate-900/60">
-          <div className="flex items-center justify-between mb-3">
-            <div className="overflow-hidden pr-2">
-              <p className="text-sm font-semibold text-white truncate">{user?.name}</p>
-              <p className="text-xs text-slate-400 truncate">{user?.email}</p>
-            </div>
-            <span className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded uppercase bg-blue-500/10 text-blue-400 border border-blue-500/30">
-              {user?.role}
+    <div className="min-h-screen bg-[#faf8f5] p-3 sm:p-5 flex flex-col font-sans selection:bg-neutral-900 selection:text-white">
+      {/* Outer Sketch Border Container Framing Entire Workspace */}
+      <div className="flex-1 border-[1.8px] border-neutral-900 rounded-2xl bg-[#fdfcf9] flex flex-col overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)]">
+        
+        {/* Top Header Bar */}
+        <header className="h-11 border-b-[1.5px] border-neutral-900 px-5 flex items-center justify-between bg-[#fbf9f5] text-xs text-neutral-800 shrink-0">
+          <div className="flex items-center gap-2.5 font-sketch text-sm tracking-wide">
+            <Home size={15} strokeWidth={1.8} className="text-neutral-900" />
+            <span className="text-neutral-400">|</span>
+            <span className="text-neutral-900 font-medium font-sans text-xs">
+              Endpoint Telemetry Ingestion Active
             </span>
           </div>
-
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-rose-500/20 rounded-lg transition-colors cursor-pointer"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            Sign Out
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-y-auto">
-        <header className="h-14 border-b border-slate-800 px-6 flex items-center justify-between bg-slate-900/40 backdrop-blur">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span className="text-xs font-medium text-emerald-400">Endpoint Telemetry Ingestion Active</span>
+          <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-600">
+            <span className="w-2 h-2 rounded-full bg-neutral-900 inline-block animate-pulse" />
+            <span>v1.0.0-production-ready</span>
           </div>
-          <span className="text-xs font-mono text-slate-500">v1.0.0-production-ready</span>
         </header>
 
-        <div className="p-8 flex-1">
-          <Outlet />
+        {/* Main Body: Sidebar + Workspace */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Left Sidebar */}
+          <aside className="w-56 sm:w-60 border-r-[1.5px] border-neutral-900 bg-[#fbf9f5] flex flex-col justify-between shrink-0">
+            <div>
+              {/* Brand Logo & Title */}
+              <div className="p-4 border-b-[1.5px] border-neutral-900 flex items-center gap-3">
+                <SketchShieldLogo className="w-8 h-8 shrink-0" />
+                <div>
+                  <h1 className="font-sketch font-bold text-base text-neutral-950 leading-none">
+                    DEM Platform
+                  </h1>
+                  <p className="text-[10px] text-neutral-600 font-sketch tracking-tight mt-0.5">
+                    Endpoint Health Suite
+                  </p>
+                </div>
+              </div>
+
+              {/* Navigation Links */}
+              <nav className="p-3 space-y-1.5">
+                {navItems.map((item) => {
+                  const { Icon } = item;
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      end={item.path === '/'}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-sketch text-[14px] transition-all ${
+                          isActive
+                            ? 'border-[1.5px] border-neutral-950 bg-white font-bold text-neutral-950 shadow-[1px_1px_0px_0px_rgba(0,0,0,0.8)]'
+                            : 'text-neutral-700 hover:text-neutral-950 hover:bg-neutral-200/50 border border-transparent'
+                        }`
+                      }
+                    >
+                      <Icon className="w-4 h-4 shrink-0 text-neutral-950" />
+                      <span>{item.name}</span>
+                    </NavLink>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* Operator Card & Sign Out */}
+            <div className="p-3 border-t-[1.5px] border-neutral-900 bg-[#fdfcf9] space-y-2.5">
+              <div className="border border-neutral-800 rounded-xl p-2.5 bg-white/70 flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full border border-neutral-900 flex items-center justify-center bg-neutral-100 shrink-0">
+                  <UserIcon size={13} strokeWidth={1.8} className="text-neutral-900" />
+                </div>
+                <div className="overflow-hidden flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1">
+                    <p className="text-xs font-bold text-neutral-900 truncate leading-tight">
+                      {user?.name || 'Ayush Singh'}
+                    </p>
+                    <span className="text-[9px] font-mono px-1 py-0.2 border border-neutral-900 rounded bg-neutral-100 uppercase shrink-0 font-bold">
+                      {user?.role || 'OPERATOR'}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-neutral-500 truncate font-mono mt-0.5">
+                    {user?.email || 'admin@dem.local'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={handleLogout}
+                className="w-full py-1.5 px-3 sketch-btn text-xs font-sketch font-bold flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <SignOutIcon className="w-3.5 h-3.5 text-neutral-950" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </aside>
+
+          {/* Right Main Content */}
+          <main className="flex-1 overflow-y-auto bg-[#fdfcf9] p-5 sm:p-7">
+            <Outlet />
+          </main>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
-
