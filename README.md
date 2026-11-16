@@ -1,150 +1,190 @@
 # Device Experience Manager (DEM)
 
-> **Endpoint Health Monitoring, Real-Time Diagnostic Engine & Automated Remediation Platform**
-> Built with Node.js, Express, TypeScript, PostgreSQL, Prisma, React 19, Tailwind CSS v4, Docker, and GitHub Actions.
+> **Enterprise Endpoint Observability, Real-Time Diagnostic Engine & Automated Remediation Platform (DEX)**  
+> Built with **React 19**, **Node.js / Express**, **TypeScript**, **PostgreSQL** (via **Neon**), **Prisma ORM**, **Tailwind CSS v4**, and **Docker**.
+
+---
+
+## 🌐 Live Production Deployment
+
+| Service | Provider | Status | URL |
+|---|---|---|---|
+| **Web Dashboard** | **Vercel** | 🟢 Live | **[device-experience-manager.vercel.app](https://device-experience-manager.vercel.app/)** |
+| **Backend REST API** | **Render** | 🟢 Live | **[dem-backend-k8xw.onrender.com/health](https://dem-backend-k8xw.onrender.com/health)** |
+| **Serverless Database** | **Neon** | 🟢 Active | PostgreSQL 16 (AWS ap-southeast-1) |
+
+### 🔑 Demo Login Credentials
+To explore the live dashboard immediately:
+- **Email:** `admin@dem.local`
+- **Password:** `AdminPassword123!`
+- **Role:** `ADMIN` / Operator
 
 ---
 
 ## 📌 Executive Summary & Problem Statement
 
-Modern enterprise IT teams manage thousands of distributed employee endpoints (laptops, workstations, edge machines). Unmonitored hardware issues cause severe productivity loss, sudden system crashes, and security vulnerabilities.
+Modern enterprise IT teams manage fleets of distributed employee laptops and workstations. Unmonitored hardware degradation leads to lost productivity, unexpected crashes, and silent security risks.
 
-**Device Experience Manager (DEM)** provides:
-1. **Endpoint Fleet Inventory**: Centralized device registry tracking hardware configurations, network identifiers (IPv4, MAC), and operational status (`ONLINE`, `OFFLINE`, `DEGRADED`).
-2. **High-Frequency Telemetry Ingestion**: Scalable REST pipeline receiving CPU, RAM, Disk, and Heartbeat metrics from distributed endpoint agents.
-3. **Rule-Based Diagnostic Engine**: Real-time evaluation of metric streams against operational thresholds with **duplicate incident suppression**.
-4. **Admin-Approved Remediation State Machine**: Safe, operator-approved simulated troubleshooting workflows (`PENDING_APPROVAL` ➔ `APPROVED` ➔ `EXECUTING` ➔ `COMPLETED`).
-5. **Security & Immutable Compliance Ledger**: Role-Based Access Control (`ADMIN`, `OPERATOR`, `VIEWER`), JWT authentication, bcrypt password hashing, and audit logging.
+**Device Experience Manager (DEM)** is a **Digital Employee Experience (DEX)** platform that provides:
+1. **Physical & Fleet Device Inventory**: Auto-discovers and registers endpoints with hardware specs, network identifiers (IPv4, MAC), and heartbeat monitoring (`ONLINE`, `DEGRADED`, `OFFLINE`).
+2. **Real Hardware Metric Ingestion**: Non-blocking collector sampling actual host hardware metrics (CPU utilization via delta tick sampling, physical RAM usage, and root drive disk space via native `statfs`).
+3. **Automated Diagnostic Engine**: Real-time evaluation of metric streams against operational thresholds with **duplicate alert suppression** and heartbeat timeout offline detection.
+4. **Approval-Gated Remediation State Machine**: Safe, operator-approved troubleshooting workflows (`PENDING_APPROVAL` ➔ `EXECUTING` ➔ `COMPLETED` / `REJECTED`) that automatically resolve associated alerts.
+5. **Immutable Compliance Audit Trail**: SOC2/ISO-ready governance ledger recording operator IDs, action timestamps, and execution payloads.
+6. **Monochrome 2D Technical-Sketch UI**: Clean, high-density operations interface designed to look like an engineering blueprint with animated outline icons, SVG sparklines, and interactive Recharts telemetry graphs.
 
 ---
 
 ## 🏗 End-to-End System Architecture
 
 ```text
-  ┌────────────────────────────────────────────────────────┐
-  │                 Endpoint Agent Simulator               │
-  │     (Streams CPU, RAM, Disk, Heartbeat Pulses)         │
-  └───────────────────────────┬────────────────────────────┘
-                              │ POST /api/telemetry
-                              ▼
-  ┌────────────────────────────────────────────────────────┐
-  │              Node.js / Express / TypeScript            │
-  │                                                        │
-  │  ┌──────────────┐   ┌───────────────┐  ┌────────────┐  │
-  │  │  Zod Inputs  │ ─►│ Auth & RBAC   │─►│ Controller │  │
-  │  └──────────────┘   └───────────────┘  └─────┬──────┘  │
-  │                                              │         │
-  │         ┌────────────────────────────────────┴───┐     │
-  │         ▼                                        ▼     │
-  │  ┌──────────────┐                         ┌──────────┐ │
-  │  │  Diagnostic  │                         │Remediation││
-  │  │ Rule Engine  │                         │  Machine │ │
-  │  └──────┬───────┘                         └────┬─────┘ │
-  └─────────┼──────────────────────────────────────┼───────┘
-            │                                      │
-            ▼                                      ▼
-  ┌────────────────────────────────────────────────────────┐
-  │              PostgreSQL 16+ Database (Prisma)          │
-  │                                                        │
-  │  [User]    [Device]   [Telemetry]   [Alert]   [Audit]  │
-  │  Composite Index: Telemetry(deviceId, timestamp DESC)  │
-  └───────────────────────────▲────────────────────────────┘
-                              │
-  ┌───────────────────────────┴────────────────────────────┐
-  │               React 19 + Tailwind v4 UI                │
-  │     (Executive Dashboard, Alerts Console, Remediation) │
-  └────────────────────────────────────────────────────────┘
+ ┌────────────────────────────────────────────────────────────────────────┐
+ │                      Physical Endpoint Agent                           │
+ │     (Live Hardware Sampling: os.cpus delta, mem, fs.statfs)            │
+ └───────────────────────────────────┬────────────────────────────────────┘
+                                     │ HTTP POST /api/telemetry
+                                     ▼
+ ┌────────────────────────────────────────────────────────────────────────┐
+ │              Node.js / Express 5 / TypeScript API                      │
+ │                                                                        │
+ │  ┌──────────────┐   ┌───────────────┐   ┌───────────────────────────┐  │
+ │  │  Zod Schema  │ ─►│ JWT Auth/RBAC │ ─►│ Controllers (REST)        │  │
+ │  └──────────────┘   └───────────────┘   └─────────────┬─────────────┘  │
+ │                                                       │                │
+ │         ┌─────────────────────────────────────────────┴──────────┐     │
+ │         ▼                                                        ▼     │
+ │  ┌──────────────┐                                         ┌──────────┐ │
+ │  │  Diagnostic  │                                         │Remediation││
+ │  │ Rule Engine  │                                         │  Machine │ │
+ │  └──────┬───────┘                                         └────┬─────┘ │
+ └─────────┼──────────────────────────────────────────────────────┼───────┘
+           │                                                      │
+           ▼                                                      ▼
+ ┌────────────────────────────────────────────────────────────────────────┐
+ │              Serverless PostgreSQL 16 (Neon / Prisma)                  │
+ │                                                                        │
+ │  [User]    [Device]   [Telemetry]   [Alert]   [Remediation]   [Audit]  │
+ │  Composite Index: Telemetry(deviceId, timestamp DESC)                  │
+ └───────────────────────────────────▲────────────────────────────────────┘
+                                     │ REST API (Bearer JWT)
+ ┌───────────────────────────────────┴────────────────────────────────────┐
+ │               React 19 + Tailwind v4 Monochrome UI                     │
+ │      (Dashboard, Devices, Alerts Console, Remediation, Audit Logs)     │
+ └────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 💻 Live Hardware Telemetry: Running the Real Agent
+
+Unlike synthetic demo projects, DEM includes an actual **Physical Host Hardware Collector**:
+
+### Stream Telemetry from Your Physical Machine to the Live Cloud App
+You can run the agent locally on your laptop and watch your actual hardware numbers stream into the live Vercel dashboard:
+
+```powershell
+cd backend
+$env:API_URL="https://dem-backend-k8xw.onrender.com/api/telemetry"
+npm run agent
+```
+
+Output:
+```text
+======================================================
+       DEM Physical Endpoint Agent Initializing       
+======================================================
+ Hostname : LAPTOP-3S81DC1D
+ OS       : Windows 10.0.26300 (x64)
+ IPv4     : 192.168.1.185
+ MAC      : DC:45:46:A0:BF:BD
+------------------------------------------------------
+Streaming live physical hardware telemetry every 3s...
+[RealAgent 11:54:01 PM] Live Telemetry: CPU:  10.8% | RAM:  91.5% | Disk:  93.8%
+```
+
+### Fleet Simulation with Real Host Metrics
+To simulate an enterprise fleet with live metrics:
+```powershell
+cd backend
+npm run simulate:real
 ```
 
 ---
 
 ## 🛠 Technology Stack Justification
 
-| Layer | Technology | Engineering Reasoning |
+| Layer | Technology | Architectural Justification |
 | :--- | :--- | :--- |
-| **Backend** | Node.js + Express + TypeScript | Single-threaded non-blocking event loop ideal for high-throughput I/O ingestion. TypeScript guarantees compile-time safety. |
-| **Validation** | Zod | Enforces strict runtime boundary type-safety. Bridges TypeScript's compile-time type erasure. |
-| **Database** | PostgreSQL 16+ | ACID transactions prevent race conditions during remediation; composite B-Tree indexes optimize time-series queries. |
-| **ORM** | Prisma ORM | Automated schema migrations, type-safe query builders, connection pooling singleton. |
-| **Frontend** | React 19 + Vite + Tailwind v4 | Blazing fast client bundle (1.1s build), native ESM hot reloading, utility-first dark mode UI. |
-| **State** | TanStack Query + Zustand | Clean separation of remote server state (polling, deduplication) from local synchronous client state. |
-| **Testing** | Vitest + Supertest | In-memory ephemeral socket testing (no port conflicts), 11/11 tests pass in < 600ms. |
-| **DevOps** | Docker Compose + GitHub Actions | Multi-stage Docker packaging and automated CI test execution on every commit. |
+| **Frontend** | React 19 + Vite + Tailwind v4 | Built with React 19 and custom monochrome hand-sketched 2D styling for low cognitive fatigue in enterprise operations. |
+| **Visualizations** | Recharts + Motion | Smooth, accessible data visualization with animated Lucide icons adhering to `prefers-reduced-motion`. |
+| **Backend** | Express 5 + TypeScript | High-throughput non-blocking I/O ideal for continuous telemetry ingestion. Strict compile-time safety. |
+| **Validation** | Zod | Runtime contract validation bridging TypeScript's compile-time type erasure at network boundaries. |
+| **Database** | PostgreSQL 16 + Neon | Serverless PostgreSQL with connection pooling, ACID transaction guarantees, and automated schema migrations. |
+| **ORM** | Prisma ORM | Type-safe client, migration history, and connection management. |
+| **Testing** | Vitest + Supertest | Integration test suite executing against in-memory sockets in < 900ms. |
+| **Cloud Hosting** | Vercel (UI) + Render (API) | Zero-maintenance serverless global CDN coupled with containerized Node.js API runtime. |
 
 ---
 
-## ⚡ Core REST API Endpoints
+## ⚡ Core API Endpoints
 
-### Authentication
-- `POST /api/auth/register` — Register administrator or operator (`409 Conflict` on duplicate).
-- `POST /api/auth/login` — Issues HMAC-signed JWT.
-- `GET /api/auth/me` — Verified user profile context (`401` if missing/invalid).
+### Authentication & RBAC
+- `POST /api/auth/register` — Create administrator / operator profile.
+- `POST /api/auth/login` — Authenticate and receive HMAC-signed JWT.
+- `GET /api/auth/me` — Retrieve authenticated user context.
 
-### Fleet Management
+### Device Fleet Management
 - `POST /api/devices/register` — Enroll hardware endpoint (`ADMIN`, `OPERATOR`).
-- `GET /api/devices` — Paginated fleet listing (`page`, `limit`, `status`, `search`).
-- `GET /api/devices/:id` — Single device details with 10 most recent telemetry records and open alerts.
-- `DELETE /api/devices/:id` — Decommission device (`ADMIN` only).
+- `GET /api/devices` — Paginated device inventory with search & status filters (`ONLINE`, `DEGRADED`, `OFFLINE`).
+- `GET /api/devices/:id` — Specific device details with recent telemetry pulses.
 
-### Telemetry Pipeline
-- `POST /api/telemetry` — Ingestion point for endpoint agents (atomic transaction updating device heartbeat and persisting metric row).
-- `GET /api/telemetry/:deviceId` — Time-series telemetry history.
+### Telemetry Ingestion
+- `POST /api/telemetry` — Ingestion point for endpoint agents (atomic transaction updating heartbeat & saving telemetry).
+- `GET /api/telemetry/:deviceId` — Historical time-series telemetry metrics.
 
-### Diagnostic & Alerts
-- `GET /api/alerts` — Incident console with status (`OPEN`, `ACKNOWLEDGED`, `RESOLVED`) and severity filters.
-- `PATCH /api/alerts/:id/status` — Operational status transition.
+### Diagnostic Engine & Alerts
+- `GET /api/alerts` — Active incident feed with status (`OPEN`, `ACKNOWLEDGED`, `RESOLVED`) and severity filters.
+- `PATCH /api/alerts/:id/acknowledge` — Transition alert to `ACKNOWLEDGED`.
+- `PATCH /api/alerts/:id/resolve` — Mark incident as resolved.
 
-### Remediation & State Machine
-- `POST /api/remediations` — Queue a remediation action (`PENDING_APPROVAL`).
-- `POST /api/remediations/:id/approve` — Approve and execute simulation (`COMPLETED`, auto-resolves alert, returns `409 Conflict` on double execution).
-- `GET /api/audit-logs` — Immutable compliance history of administrative operations.
+### Remediation & Governance
+- `POST /api/remediations` — Queue troubleshooting action (`CLEANUP_TEMP_FILES`, `RESTART_BACKGROUND_SERVICE`, etc.).
+- `POST /api/remediations/:id/approve` — Approve and execute fix (auto-resolves attached alert, prevents double execution via `409 Conflict`).
+- `GET /api/audit-logs` — Immutable compliance history tracking administrative operations.
 
 ---
 
-## 🧪 Automated Test Suite (Vitest + Supertest)
+## 🧪 Automated Test Suite (Vitest)
 
-Run the test suite:
+All integration tests validate security, validation schemas, and database transactions:
+
 ```bash
 cd backend
 npm test
 ```
 
 ```text
- ✓ src/__tests__/api.test.ts (11 tests) 588ms
+ ✓ src/__tests__/api.test.ts (11 tests) 862ms
+
  Test Files  1 passed (1)
       Tests  11 passed (11)
 ```
 
 ---
 
-## 🚀 One-Command Docker Deployment
+## 🐳 Local Docker Deployment
 
-To run the complete platform (PostgreSQL, Backend API, and React Frontend Nginx) in Docker:
+Run the complete platform locally using Docker Compose:
 
 ```bash
 docker compose up --build -d
 ```
 
-- **Frontend Dashboard**: `http://localhost:3000`
-- **Backend API**: `http://localhost:5000`
-- **PostgreSQL Database**: `localhost:5432`
-
----
-
-## 🎯 Technical Interview Defense Guide
-
-When asked to explain this system in technical interviews:
-
-1. **Why is `app.ts` separated from `server.ts`?**
-   > *To enable parallel, isolated integration testing using Supertest over in-memory ephemeral ports without encountering `EADDRINUSE` port-collision errors.*
-2. **How does the system prevent duplicate alert storms?**
-   > *Before inserting an alert, the Diagnostic Engine checks PostgreSQL for active unacknowledged alerts matching `deviceId` and `title`. If one is currently `OPEN`, duplicate alerts are suppressed.*
-3. **How are race conditions prevented during remediation?**
-   > *The remediation state machine checks `status === 'PENDING_APPROVAL'`. If concurrent requests attempt to execute an action already in `EXECUTING` or `COMPLETED` state, the API rejects with `409 Conflict`.*
-4. **How are time-series telemetry queries optimized?**
-   > *We added a compound index `@@index([deviceId, timestamp(sort: Desc)])` in Prisma, transforming $O(N)$ sequential table scans into $O(\log N)$ B-Tree seeks for recent metrics.*
+- **Frontend:** `http://localhost:3000`
+- **Backend:** `http://localhost:5000`
+- **PostgreSQL:** `localhost:5433`
 
 ---
 
 ## 📄 License
-This project is licensed under the MIT License.
+MIT License. Developed for enterprise endpoint observability and modern systems engineering portfolios.
