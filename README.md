@@ -1,86 +1,92 @@
 # Device Experience Manager (DEM)
 
-> **Enterprise Endpoint Observability, Real-Time Diagnostic Engine & Automated Remediation Platform (DEX)**  
-> Built with **React 19**, **Node.js / Express**, **TypeScript**, **PostgreSQL** (via **Neon**), **Prisma ORM**, **Tailwind CSS v4**, and **Docker**.
+A full-stack endpoint observability and automated remediation platform (Digital Employee Experience / DEX).
+
+DEM monitors computer hardware health, flags threshold anomalies in real time, orchestrates operator-approved remediation workflows, and maintains an immutable audit log.
 
 ---
 
-## 🌐 Live Production Deployment
+## Live Demo
 
 | Service | Provider | Status | URL |
 |---|---|---|---|
-| **Web Dashboard** | **Vercel** | 🟢 Live | **[device-experience-manager.vercel.app](https://device-experience-manager.vercel.app/)** |
-| **Backend REST API** | **Render** | 🟢 Live | **[dem-backend-k8xw.onrender.com/health](https://dem-backend-k8xw.onrender.com/health)** |
-| **Serverless Database** | **Neon** | 🟢 Active | PostgreSQL 16 (AWS ap-southeast-1) |
+| Web Dashboard | Vercel | Online | https://device-experience-manager.vercel.app |
+| Backend API | Render | Online | https://dem-backend-k8xw.onrender.com/health |
+| Cloud Database | Neon | Online | PostgreSQL 16 |
 
-### 🔑 Demo Login Credentials
-To explore the live dashboard immediately:
-- **Email:** `admin@dem.local`
-- **Password:** `AdminPassword123!`
-- **Role:** `ADMIN` / Operator
-
----
-
-## 📌 Executive Summary & Problem Statement
-
-Modern enterprise IT teams manage fleets of distributed employee laptops and workstations. Unmonitored hardware degradation leads to lost productivity, unexpected crashes, and silent security risks.
-
-**Device Experience Manager (DEM)** is a **Digital Employee Experience (DEX)** platform that provides:
-1. **Physical & Fleet Device Inventory**: Auto-discovers and registers endpoints with hardware specs, network identifiers (IPv4, MAC), and heartbeat monitoring (`ONLINE`, `DEGRADED`, `OFFLINE`).
-2. **Real Hardware Metric Ingestion**: Non-blocking collector sampling actual host hardware metrics (CPU utilization via delta tick sampling, physical RAM usage, and root drive disk space via native `statfs`).
-3. **Automated Diagnostic Engine**: Real-time evaluation of metric streams against operational thresholds with **duplicate alert suppression** and heartbeat timeout offline detection.
-4. **Approval-Gated Remediation State Machine**: Safe, operator-approved troubleshooting workflows (`PENDING_APPROVAL` ➔ `EXECUTING` ➔ `COMPLETED` / `REJECTED`) that automatically resolve associated alerts.
-5. **Immutable Compliance Audit Trail**: SOC2/ISO-ready governance ledger recording operator IDs, action timestamps, and execution payloads.
-6. **Monochrome 2D Technical-Sketch UI**: Clean, high-density operations interface designed to look like an engineering blueprint with animated outline icons, SVG sparklines, and interactive Recharts telemetry graphs.
+### Demo Credentials
+- Email: `admin@dem.local`
+- Password: `AdminPassword123!`
+- Role: `ADMIN`
 
 ---
 
-## 🏗 End-to-End System Architecture
+## What Problem This Solves
+
+In modern organizations, IT administrators must track hundreds of remote employee workstations. Unmonitored hardware issues cause application crashes, performance slowdowns, and lost productivity.
+
+DEM solves this through a three-part system:
+1. A background agent runs on the user machine to measure live hardware performance (CPU, memory, disk).
+2. The central backend evaluates metric streams against diagnostic thresholds (for example, CPU sustained at or above 90%).
+3. When an anomaly is detected, the platform triggers an alert, allows an IT operator to approve a fix, and records an audit log for security compliance.
+
+---
+
+## Core Capabilities
+
+- Physical Device Inventory: Automatically identifies and tracks machines by hostname, IP address, MAC address, and operating system.
+- Real Hardware Telemetry: Gathers live CPU utilization, physical RAM usage, and disk space from the host machine using native system calls.
+- Automated Alert Engine: Continuously scans telemetry pulses. Detects high CPU, memory pressure, low disk space, and offline heartbeat timeouts while preventing duplicate alert spam.
+- Remediation State Machine: Governs troubleshooting actions (`PENDING_APPROVAL` to `EXECUTING` to `COMPLETED` or `REJECTED`). Automatically marks corresponding alerts as resolved upon successful execution.
+- Compliance Audit Trail: Immutable historical log recording operator identity, action types, resource IDs, and timestamps.
+- Technical 2D Interface: Built with React 19, high-density layout, monochrome outline icons, and interactive health charts.
+
+---
+
+## Architecture
 
 ```text
- ┌────────────────────────────────────────────────────────────────────────┐
- │                      Physical Endpoint Agent                           │
- │     (Live Hardware Sampling: os.cpus delta, mem, fs.statfs)            │
- └───────────────────────────────────┬────────────────────────────────────┘
-                                     │ HTTP POST /api/telemetry
-                                     ▼
- ┌────────────────────────────────────────────────────────────────────────┐
- │              Node.js / Express 5 / TypeScript API                      │
- │                                                                        │
- │  ┌──────────────┐   ┌───────────────┐   ┌───────────────────────────┐  │
- │  │  Zod Schema  │ ─►│ JWT Auth/RBAC │ ─►│ Controllers (REST)        │  │
- │  └──────────────┘   └───────────────┘   └─────────────┬─────────────┘  │
- │                                                       │                │
- │         ┌─────────────────────────────────────────────┴──────────┐     │
- │         ▼                                                        ▼     │
- │  ┌──────────────┐                                         ┌──────────┐ │
- │  │  Diagnostic  │                                         │Remediation││
- │  │ Rule Engine  │                                         │  Machine │ │
- │  └──────┬───────┘                                         └────┬─────┘ │
- └─────────┼──────────────────────────────────────────────────────┼───────┘
-           │                                                      │
-           ▼                                                      ▼
- ┌────────────────────────────────────────────────────────────────────────┐
- │              Serverless PostgreSQL 16 (Neon / Prisma)                  │
- │                                                                        │
- │  [User]    [Device]   [Telemetry]   [Alert]   [Remediation]   [Audit]  │
- │  Composite Index: Telemetry(deviceId, timestamp DESC)                  │
- └───────────────────────────────────▲────────────────────────────────────┘
-                                     │ REST API (Bearer JWT)
- ┌───────────────────────────────────┴────────────────────────────────────┐
- │               React 19 + Tailwind v4 Monochrome UI                     │
- │      (Dashboard, Devices, Alerts Console, Remediation, Audit Logs)     │
- └────────────────────────────────────────────────────────────────────────┘
+[ Physical Machine / Endpoint Agent ]
+              |
+              | HTTP POST /api/telemetry (Every 3 seconds)
+              v
+[ Node.js + Express 5 Backend API ]
+   - Zod runtime input validation
+   - JWT authentication and role-based access control
+   - Background Diagnostic Rule Engine
+   - Remediation state machine
+              |
+              v
+[ PostgreSQL Database (Neon Serverless) ]
+   - Tables: User, Device, Telemetry, Alert, RemediationAction, AuditLog
+   - Composite B-Tree Index: Telemetry(deviceId, timestamp DESC)
+              ^
+              | REST API Calls (Bearer JWT)
+[ React 19 + Tailwind v4 Web Dashboard ]
+   - Executive Overview & KPI cards
+   - Live Device Inventory & Search
+   - Incident Alerts Console
+   - Remediation Approval Queue
+   - Compliance Audit Log
 ```
 
 ---
 
-## 💻 Live Hardware Telemetry: Running the Real Agent
+## How Real Hardware Telemetry Works
 
-Unlike synthetic demo projects, DEM includes an actual **Physical Host Hardware Collector**:
+Web browsers run inside a security sandbox and cannot read your laptop hard drive, CPU cycles, or MAC address.
 
-### Stream Telemetry from Your Physical Machine to the Live Cloud App
-You can run the agent locally on your laptop and watch your actual hardware numbers stream into the live Vercel dashboard:
+To capture authentic metrics, DEM uses a native background agent (`realDeviceAgent.ts`) that runs directly on the operating system.
+
+### Data Collection Details
+- CPU Utilization: Computed by measuring delta clock ticks (`idle` versus `total`) across all CPU cores over a 400ms sampling window using Node.js `os.cpus()`.
+- RAM Usage: Calculated as `((total - free) / total) * 100` using Node.js `os.totalmem()` and `os.freemem()`.
+- Disk Space: Measured directly on the system partition (`C:\` on Windows, `/` on Linux and macOS) using native `fs.promises.statfs`.
+- Device Identity: Reads the machine hostname (`os.hostname()`), OS version, primary IPv4 address, and network MAC address.
+
+### Streaming Live Data from Your Machine to the Cloud Dashboard
+
+Run the physical agent in your terminal:
 
 ```powershell
 cd backend
@@ -88,7 +94,7 @@ $env:API_URL="https://dem-backend-k8xw.onrender.com/api/telemetry"
 npm run agent
 ```
 
-Output:
+Terminal output:
 ```text
 ======================================================
        DEM Physical Endpoint Agent Initializing       
@@ -98,73 +104,104 @@ Output:
  IPv4     : 192.168.1.185
  MAC      : DC:45:46:A0:BF:BD
 ------------------------------------------------------
-Streaming live physical hardware telemetry every 3s...
-[RealAgent 11:54:01 PM] Live Telemetry: CPU:  10.8% | RAM:  91.5% | Disk:  93.8%
+[RealAgent 12:05:00 AM] Live Telemetry: CPU: 12.3% | RAM: 91.5% | Disk: 93.8%
 ```
 
-### Fleet Simulation with Real Host Metrics
-To simulate an enterprise fleet with live metrics:
-```powershell
+Refresh the web dashboard at `https://device-experience-manager.vercel.app` to see your machine listed and its metrics updated live.
+
+---
+
+## Technology Stack
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| Frontend | React 19, Vite, Tailwind CSS v4 | User interface and data visualization |
+| UI Libraries | Recharts, Motion, Lucide React | Metrics charting and micro-animations |
+| Backend | Node.js, Express 5, TypeScript | REST API and ingestion pipeline |
+| Validation | Zod | Runtime schema validation |
+| Database | PostgreSQL 16 (Neon Serverless) | Relational persistence with connection pooling |
+| ORM | Prisma ORM | Type-safe database queries and migrations |
+| Testing | Vitest, Supertest | Integration and unit testing |
+| Hosting | Vercel (Frontend), Render (Backend) | Cloud deployment and global CDN |
+
+---
+
+## API Reference
+
+### Authentication
+- `POST /api/auth/register` - Create a new user account.
+- `POST /api/auth/login` - Authenticate and obtain a JWT token.
+- `GET /api/auth/me` - Retrieve current user profile.
+
+### Device Management
+- `POST /api/devices/register` - Enroll a new device.
+- `GET /api/devices` - List devices with pagination and search.
+- `GET /api/devices/:id` - Fetch single device details and recent telemetry.
+- `DELETE /api/devices/:id` - Remove a device from the fleet.
+
+### Telemetry Pipeline
+- `POST /api/telemetry` - Endpoint agent ingestion target.
+- `GET /api/telemetry/:deviceId` - Retrieve historical telemetry series.
+
+### Alerts and Diagnostics
+- `GET /api/alerts` - List active alerts by status (`OPEN`, `ACKNOWLEDGED`, `RESOLVED`).
+- `PATCH /api/alerts/:id/acknowledge` - Mark an alert as acknowledged.
+- `PATCH /api/alerts/:id/resolve` - Mark an alert as resolved.
+
+### Remediation and Governance
+- `POST /api/remediations` - Request a remediation action.
+- `GET /api/remediations` - List remediation requests and execution logs.
+- `POST /api/remediations/:id/approve` - Approve and execute remediation.
+- `POST /api/remediations/:id/reject` - Reject remediation request.
+- `GET /api/audit-logs` - Retrieve immutable security compliance logs.
+
+---
+
+## Local Development Setup
+
+### Prerequisites
+- Node.js 20 or higher
+- PostgreSQL (or Docker)
+
+### 1. Backend Setup
+```bash
 cd backend
-npm run simulate:real
+npm install
+npx prisma generate
+npx prisma db push
+npm run db:seed
+npm run dev
+```
+Backend runs on `http://localhost:5000`.
+
+### 2. Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Frontend runs on `http://localhost:5173` (or `http://localhost:3000` via Docker).
+
+### 3. Docker Compose Setup (Optional)
+To run the full stack (database, backend, and frontend) in containers:
+```bash
+docker compose up --build -d
 ```
 
 ---
 
-## 🛠 Technology Stack Justification
+## Testing
 
-| Layer | Technology | Architectural Justification |
-| :--- | :--- | :--- |
-| **Frontend** | React 19 + Vite + Tailwind v4 | Built with React 19 and custom monochrome hand-sketched 2D styling for low cognitive fatigue in enterprise operations. |
-| **Visualizations** | Recharts + Motion | Smooth, accessible data visualization with animated Lucide icons adhering to `prefers-reduced-motion`. |
-| **Backend** | Express 5 + TypeScript | High-throughput non-blocking I/O ideal for continuous telemetry ingestion. Strict compile-time safety. |
-| **Validation** | Zod | Runtime contract validation bridging TypeScript's compile-time type erasure at network boundaries. |
-| **Database** | PostgreSQL 16 + Neon | Serverless PostgreSQL with connection pooling, ACID transaction guarantees, and automated schema migrations. |
-| **ORM** | Prisma ORM | Type-safe client, migration history, and connection management. |
-| **Testing** | Vitest + Supertest | Integration test suite executing against in-memory sockets in < 900ms. |
-| **Cloud Hosting** | Vercel (UI) + Render (API) | Zero-maintenance serverless global CDN coupled with containerized Node.js API runtime. |
-
----
-
-## ⚡ Core API Endpoints
-
-### Authentication & RBAC
-- `POST /api/auth/register` — Create administrator / operator profile.
-- `POST /api/auth/login` — Authenticate and receive HMAC-signed JWT.
-- `GET /api/auth/me` — Retrieve authenticated user context.
-
-### Device Fleet Management
-- `POST /api/devices/register` — Enroll hardware endpoint (`ADMIN`, `OPERATOR`).
-- `GET /api/devices` — Paginated device inventory with search & status filters (`ONLINE`, `DEGRADED`, `OFFLINE`).
-- `GET /api/devices/:id` — Specific device details with recent telemetry pulses.
-
-### Telemetry Ingestion
-- `POST /api/telemetry` — Ingestion point for endpoint agents (atomic transaction updating heartbeat & saving telemetry).
-- `GET /api/telemetry/:deviceId` — Historical time-series telemetry metrics.
-
-### Diagnostic Engine & Alerts
-- `GET /api/alerts` — Active incident feed with status (`OPEN`, `ACKNOWLEDGED`, `RESOLVED`) and severity filters.
-- `PATCH /api/alerts/:id/acknowledge` — Transition alert to `ACKNOWLEDGED`.
-- `PATCH /api/alerts/:id/resolve` — Mark incident as resolved.
-
-### Remediation & Governance
-- `POST /api/remediations` — Queue troubleshooting action (`CLEANUP_TEMP_FILES`, `RESTART_BACKGROUND_SERVICE`, etc.).
-- `POST /api/remediations/:id/approve` — Approve and execute fix (auto-resolves attached alert, prevents double execution via `409 Conflict`).
-- `GET /api/audit-logs` — Immutable compliance history tracking administrative operations.
-
----
-
-## 🧪 Automated Test Suite (Vitest)
-
-All integration tests validate security, validation schemas, and database transactions:
+Run the automated integration test suite:
 
 ```bash
 cd backend
 npm test
 ```
 
+Test results:
 ```text
- ✓ src/__tests__/api.test.ts (11 tests) 862ms
+ PASS src/__tests__/api.test.ts (11 tests) 862ms
 
  Test Files  1 passed (1)
       Tests  11 passed (11)
@@ -172,19 +209,6 @@ npm test
 
 ---
 
-## 🐳 Local Docker Deployment
+## License
 
-Run the complete platform locally using Docker Compose:
-
-```bash
-docker compose up --build -d
-```
-
-- **Frontend:** `http://localhost:3000`
-- **Backend:** `http://localhost:5000`
-- **PostgreSQL:** `localhost:5433`
-
----
-
-## 📄 License
-MIT License. Developed for enterprise endpoint observability and modern systems engineering portfolios.
+MIT License.
