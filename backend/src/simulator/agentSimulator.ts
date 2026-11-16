@@ -1,13 +1,17 @@
 import prisma from '../config/db';
+import { SystemMetricsService } from '../services/systemMetricsService';
 
 const API_URL = process.env.API_URL || 'http://localhost:5000/api/telemetry';
 
-// Random number generator between min and max with 2 decimal places
+// Random fallback generator
 const getRandom = (min: number, max: number): number => {
   return parseFloat((Math.random() * (max - min) + min).toFixed(2));
 };
 
-export const sendDeviceTelemetry = async (deviceId: string, customMetrics?: { cpu?: number; memory?: number; disk?: number }) => {
+export const sendDeviceTelemetry = async (
+  deviceId: string,
+  customMetrics?: { cpu?: number; memory?: number; disk?: number }
+) => {
   const payload = {
     deviceId,
     cpuUsage: customMetrics?.cpu ?? getRandom(15, 75),
@@ -30,7 +34,9 @@ export const sendDeviceTelemetry = async (deviceId: string, customMetrics?: { cp
     }
 
     const data = await response.json();
-    console.log(`[Agent ${deviceId}] Telemetry sent: CPU ${payload.cpuUsage}% | RAM ${payload.memoryUsage}% | DISK ${payload.diskUsage}%`);
+    console.log(
+      `[Agent ${deviceId}] Telemetry sent: CPU ${payload.cpuUsage}% | RAM ${payload.memoryUsage}% | DISK ${payload.diskUsage}%`
+    );
     return data;
   } catch (error) {
     console.error(`[Agent ${deviceId}] Network error sending telemetry:`, error);
@@ -38,8 +44,14 @@ export const sendDeviceTelemetry = async (deviceId: string, customMetrics?: { cp
   }
 };
 
-export const runFleetSimulation = async (intervalSeconds = 5, iterations = 3) => {
-  console.log(`Starting Fleet Telemetry Simulator (Interval: ${intervalSeconds}s, Iterations: ${iterations})...`);
+export const runFleetSimulation = async (
+  intervalSeconds = 3,
+  iterations = 3,
+  useRealMetrics = false
+) => {
+  console.log(
+    `Starting Fleet Telemetry ${useRealMetrics ? '(Using REAL Host Hardware Metrics)' : '(Synthetic Mode)'} (Interval: ${intervalSeconds}s, Iterations: ${iterations})...`
+  );
 
   const devices = await prisma.device.findMany({ select: { id: true, hostname: true } });
   if (devices.length === 0) {
@@ -51,11 +63,24 @@ export const runFleetSimulation = async (intervalSeconds = 5, iterations = 3) =>
   devices.forEach((d) => console.log(` - ${d.hostname} (${d.id})`));
 
   let count = 0;
-  const intervalId = setInterval(async () => {
+  const runBatch = async () => {
     count++;
     console.log(`\n--- Telemetry Batch #${count} ---`);
+
+    // Sample real hardware metrics if requested
+    let realMetrics: { cpu: number; memory: number; disk: number } | undefined;
+    if (useRealMetrics) {
+      const sampled = await SystemMetricsService.getRealMetrics(400);
+      realMetrics = {
+        cpu: sampled.cpuUsage,
+        memory: sampled.memoryUsage,
+        disk: sampled.diskUsage,
+      };
+      console.log(`[Host Hardware Sample] Real CPU: ${realMetrics.cpu}% | Real RAM: ${realMetrics.memory}% | Real Disk: ${realMetrics.disk}%`);
+    }
+
     for (const d of devices) {
-      await sendDeviceTelemetry(d.id);
+      await sendDeviceTelemetry(d.id, realMetrics);
     }
 
     if (iterations > 0 && count >= iterations) {
@@ -63,11 +88,28 @@ export const runFleetSimulation = async (intervalSeconds = 5, iterations = 3) =>
       console.log('\nFleet telemetry simulation batch complete.');
       process.exit(0);
     }
-  }, intervalSeconds * 1000);
+  };
+
+  const intervalId = setInterval(runBatch, intervalSeconds * 1000);
+  // Run first batch immediately
+  await runBatch();
 };
 
 // If run directly via tsx
 if (require.main === module) {
-  runFleetSimulation(3, 3).catch(console.error);
-}
+  const args = process.argv.slice(2);
+  let interval = 3;
+  let iterations = 3;
+  let useRealMetrics = args.includes('--real') || process.env.USE_REAL_METRICS === 'true';
 
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--interval' && args[i + 1]) {
+      interval = parseInt(args[i + 1], 10);
+    }
+    if (args[i] === '--iterations' && args[i + 1]) {
+      iterations = parseInt(args[i + 1], 10);
+    }
+  }
+
+  runFleetSimulation(interval, iterations, useRealMetrics).catch(console.error);
+}

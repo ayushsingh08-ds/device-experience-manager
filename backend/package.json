@@ -9,6 +9,8 @@
         "start": "node dist/server.js",
         "test": "vitest run",
         "simulate": "tsx src/simulator/agentSimulator.ts",
+        "simulate:real": "tsx src/simulator/agentSimulator.ts --real",
+        "agent": "tsx src/agent/realDeviceAgent.ts",
         "postinstall": "prisma generate"
     },
     "keywords": [],
